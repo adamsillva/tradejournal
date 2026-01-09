@@ -1,7 +1,5 @@
 # Trade Journal
 
-![Trade Journal Screenshot](https://i.imgur.com/YOUR_IMAGE_ID.png) 
-
 Um diário de trades simples e eficaz para registrar e analisar suas operações no mercado financeiro. Desenvolvido em Python com uma interface gráfica intuitiva, permite que você mantenha um histórico detalhado de suas operações, gerencie múltiplas contas e visualize seu desempenho ao longo do tempo.
 
 ## Funcionalidades
@@ -18,7 +16,7 @@ Um diário de trades simples e eficaz para registrar e analisar suas operações
 Para utilizar a aplicação, siga os passos abaixo:
 
 1.  **Baixe o Executável:**
-    *   Vá para a seção de [**Releases**](https://github.com/SEU_USUARIO/SEU_REPOSITORIO/releases) neste repositório.
+    *   Vá para a seção [**Dist**](https://github.com/adamsillva/tradejournal/tree/main/dist) neste repositório.
     *   Baixe o arquivo `TradeJournal.exe` da versão mais recente.
 
 2.  **Execute a Aplicação:**
@@ -33,3 +31,4 @@ Para utilizar a aplicação, siga os passos abaixo:
 - **Python:** Linguagem de programação principal.
 - **Tkinter:** Biblioteca padrão do Python para a criação da interface gráfica.
 - **PyInstaller:** Ferramenta utilizada para converter o script Python em um executável standalone para Windows.
+
