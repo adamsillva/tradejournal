@@ -16,7 +16,7 @@ Um diário de trades simples e eficaz para registrar e analisar suas operações
 Para utilizar a aplicação, siga os passos abaixo:
 
 1.  **Baixe o Executável:**
-    *   Vá para a seção [**Dist**](https://github.com/adamsillva/tradejournal/tree/main/dist) neste repositório.
+    *   Vá para a seção [**Release**](https://github.com/adamsillva/tradejournal/releases/tag/exe) neste repositório.
     *   Baixe o arquivo `TradeJournal.exe` da versão mais recente.
 
 2.  **Execute a Aplicação:**
@@ -31,4 +31,5 @@ Para utilizar a aplicação, siga os passos abaixo:
 - **Python:** Linguagem de programação principal.
 - **Tkinter:** Biblioteca padrão do Python para a criação da interface gráfica.
 - **PyInstaller:** Ferramenta utilizada para converter o script Python em um executável standalone para Windows.
+
 
