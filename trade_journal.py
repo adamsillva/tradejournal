@@ -12,6 +12,26 @@ from tkinter import ttk
 
 DATA_FILE = Path(__file__).with_name("trade_journal_data.json")
 
+# Paleta e fontes (tema escuro com tons ajustados)
+BG_MAIN = "#0b1620"         # fundo principal mais escuro
+BG_PANEL = "#102131"        # painel lateral
+BG_GRID = "#0b1620"         # área do calendário
+BG_CELL_NEUTRAL = "#1a2d3b" # célula neutra
+BG_CELL_OUT = "#0a141c"     # dias fora do mês
+GREEN = "#2fb86f"           # verde médio/brilhante
+RED = "#b23a3a"             # vermelho médio
+TEXT_PRIMARY = "#cfe3f0"    # texto principal
+TEXT_MUTED = "#8aa0af"      # texto secundário
+TEXT_ON_COLOR = "#ffffff"   # texto sobre cores fortes
+BG_INPUT = "#152535"
+BORDER_SOFT = "#1e2c36"
+SELECT_BORDER = "#27a6e5"
+OUTLINE_SOFT = "#11232c"
+FONT_MONTH = ("Segoe UI", 16, "bold")
+FONT_DAY = ("Segoe UI", 10, "bold")
+FONT_CELL = ("Segoe UI", 10, "bold")
+FONT_PROFIT = ("Segoe UI", 14, "bold")
+
 def _parse_pl(raw: str) -> float:
     value = raw.strip().replace(",", ".")
     if value == "":
@@ -34,6 +54,7 @@ class TradeJournalApp(tk.Tk):
         super().__init__()
         self.title("Trade Journal")
         self.minsize(1100, 700)
+        self.configure(bg=BG_MAIN)
 
         today = date.today()
         self.current_year = today.year
@@ -101,31 +122,63 @@ class TradeJournalApp(tk.Tk):
         _safe_write_json(DATA_FILE, self.data)
 
     def _build_ui(self) -> None:
-        self.columnconfigure(0, weight=3)
-        self.columnconfigure(1, weight=2)
+        style = ttk.Style()
+        try:
+            style.theme_use("clam")
+        except Exception:
+            pass
+        style.configure("TFrame", background=BG_MAIN, borderwidth=0)
+        style.configure("Side.TFrame", background=BG_PANEL, borderwidth=0)
+        style.configure("Grid.TFrame", background=BG_GRID, borderwidth=0)
+        style.configure("TLabel", background=BG_MAIN, foreground=TEXT_PRIMARY)
+        style.configure("Muted.TLabel", background=BG_MAIN, foreground=TEXT_MUTED)
+        style.configure("Side.TLabel", background=BG_PANEL, foreground=TEXT_PRIMARY)
+        style.configure("TLabelframe", background=BG_PANEL, foreground=TEXT_PRIMARY, borderwidth=0)
+        style.configure("TLabelframe.Label", background=BG_PANEL, foreground=TEXT_PRIMARY, font=("Segoe UI", 10))
+        style.configure("Treeview", background=BG_PANEL, fieldbackground=BG_PANEL, foreground=TEXT_PRIMARY, borderwidth=0)
+        style.configure("Treeview.Heading", background=BG_PANEL, foreground=TEXT_PRIMARY)
+        style.map("Treeview", background=[("selected", "#224058")], foreground=[("selected", TEXT_PRIMARY)])
+        style.configure("TButton", background="#1f3545", foreground=TEXT_PRIMARY, borderwidth=0)
+        style.map("TButton", background=[("active", "#294a60"), ("pressed", "#223e52")])
+        style.configure("TMenubutton", background="#1f3545", foreground=TEXT_PRIMARY, borderwidth=0)
+        style.map("TMenubutton", background=[("active", "#294a60"), ("pressed", "#223e52")])
+        style.configure("TCombobox", fieldbackground=BG_INPUT, background=BG_INPUT, foreground=TEXT_PRIMARY, borderwidth=0, bordercolor=BORDER_SOFT)
+        style.map("TCombobox",
+                  fieldbackground=[("readonly", BG_INPUT)],
+                  background=[("readonly", BG_INPUT)],
+                  foreground=[("readonly", TEXT_PRIMARY)],
+                  arrowcolor=[("readonly", TEXT_PRIMARY)],
+                  bordercolor=[("readonly", BORDER_SOFT)])
+        style.configure("TEntry", fieldbackground=BG_INPUT, foreground=TEXT_PRIMARY, background=BG_INPUT, borderwidth=0)
+
+        self.columnconfigure(0, weight=1)
+        self.columnconfigure(1, weight=1)
         self.rowconfigure(0, weight=1)
 
-        calendar_frame = ttk.Frame(self, padding=12)
+        calendar_frame = ttk.Frame(self, padding=12, style="TFrame")
         calendar_frame.grid(row=0, column=0, sticky="nsew")
         calendar_frame.columnconfigure(0, weight=1)
         calendar_frame.rowconfigure(2, weight=1)
 
-        header = ttk.Frame(calendar_frame)
+        header = ttk.Frame(calendar_frame, style="TFrame")
         header.grid(row=0, column=0, sticky="ew", pady=(0, 10))
         header.columnconfigure(1, weight=1)
+        header.columnconfigure(3, weight=0)
 
         ttk.Button(header, text="◀", width=4, command=self._prev_month).grid(row=0, column=0, sticky="w")
-        self.month_label = ttk.Label(header, text="", anchor="center", font=("Segoe UI", 16, "bold"))
+        self.month_label = ttk.Label(header, text="", anchor="center", font=FONT_MONTH)
         self.month_label.grid(row=0, column=1, sticky="ew", padx=10)
         ttk.Button(header, text="▶", width=4, command=self._next_month).grid(row=0, column=2, sticky="e")
+        self.month_profit_label = ttk.Label(header, text="", anchor="e", font=FONT_PROFIT)
+        self.month_profit_label.grid(row=0, column=3, sticky="e")
 
-        weekdays = ttk.Frame(calendar_frame)
+        weekdays = ttk.Frame(calendar_frame, style="TFrame")
         weekdays.grid(row=1, column=0, sticky="ew", pady=(10, 4))
-        for i, name in enumerate(["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"]):
+        for i, name in enumerate(["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"]):
             weekdays.columnconfigure(i, weight=1, uniform="wd")
             ttk.Label(weekdays, text=name, anchor="center", font=("Segoe UI", 9, "bold")).grid(row=0, column=i, sticky="ew")
 
-        self.days_grid = ttk.Frame(calendar_frame)
+        self.days_grid = ttk.Frame(calendar_frame, style="Grid.TFrame")
         self.days_grid.grid(row=2, column=0, sticky="nsew")
         for r in range(6):
             self.days_grid.rowconfigure(r, weight=1, uniform="row")
@@ -140,45 +193,68 @@ class TradeJournalApp(tk.Tk):
                     self.days_grid,
                     text="",
                     command=lambda: None,
-                    relief="flat"
+                    relief="flat",
+                    bg=BG_CELL_NEUTRAL,
+                    fg=TEXT_ON_COLOR,
+                    activebackground="#274457",
+                    font=FONT_CELL,
+                    bd=0,
+                    highlightthickness=0,
+                    highlightbackground=BORDER_SOFT,
+                    highlightcolor=BORDER_SOFT
                 )
                 btn.grid(row=r, column=c, sticky="nsew", padx=2, pady=2)
                 self.day_buttons.append(btn)
 
-        side_frame = ttk.Frame(self, padding=12)
-        side_frame.grid(row=0, column=1, sticky="nsew")
+        side_border = tk.Frame(self, bg=BG_MAIN, highlightthickness=0, highlightbackground=SELECT_BORDER, highlightcolor=SELECT_BORDER)
+        side_border.grid(row=0, column=1, sticky="nsew")
+        side_border.columnconfigure(0, weight=1)
+        side_border.rowconfigure(0, weight=1)
+
+        side_frame = ttk.Frame(side_border, padding=12, style="Side.TFrame")
+        side_frame.grid(row=0, column=0, sticky="nsew")
         side_frame.columnconfigure(0, weight=1)
         side_frame.rowconfigure(3, weight=1)
 
         # Header do painel lateral
-        side_header = ttk.Frame(side_frame)
+        side_header = ttk.Frame(side_frame, style="Side.TFrame")
         side_header.grid(row=0, column=0, sticky="ew", pady=(0, 10))
         
-        self.selected_label = ttk.Label(side_header, text="", font=("Segoe UI", 18, "bold"))
+        self.selected_label = ttk.Label(side_header, text="", font=("Segoe UI", 18), style="Side.TLabel")
         self.selected_label.pack(side="left")
 
-        self.day_total_label = ttk.Label(side_frame, text="", font=("Segoe UI", 12))
+        self.day_total_label = ttk.Label(side_frame, text="", font=("Segoe UI", 12), style="Side.TLabel")
         self.day_total_label.grid(row=1, column=0, sticky="w", pady=(0, 10))
 
         # Filtros
-        filters_frame = ttk.LabelFrame(side_frame, text="Filtros", padding=10)
-        filters_frame.grid(row=2, column=0, sticky="ew", pady=(0, 10))
+        filters_border = tk.Frame(side_frame, bg=BG_PANEL, highlightthickness=0, highlightbackground=SELECT_BORDER, highlightcolor=SELECT_BORDER)
+        filters_border.grid(row=2, column=0, sticky="ew", pady=(0, 10))
+        filters_border.columnconfigure(0, weight=1)
+
+        filters_frame = ttk.LabelFrame(filters_border, text="Filtros", padding=10, style="TLabelframe")
+        filters_frame.grid(row=0, column=0, sticky="ew")
         
         ttk.Label(filters_frame, text="Ativo:").pack(side="left", padx=(0, 5))
         self.filter_asset_var = tk.StringVar(value="Todos")
-        self.filter_asset_cb = ttk.Combobox(filters_frame, textvariable=self.filter_asset_var, width=10, state="readonly")
-        self.filter_asset_cb.pack(side="left", padx=(0, 10))
+        f_asset_border = tk.Frame(filters_frame, bg=BG_PANEL, highlightthickness=1, highlightbackground=OUTLINE_SOFT, highlightcolor=OUTLINE_SOFT)
+        f_asset_border.pack(side="left", padx=(0, 10))
+        self.filter_asset_cb = ttk.Combobox(f_asset_border, textvariable=self.filter_asset_var, width=10, state="readonly")
+        self.filter_asset_cb.pack(side="left")
         self.filter_asset_cb.bind("<<ComboboxSelected>>", lambda e: self._refresh_day_panel())
 
         ttk.Label(filters_frame, text="Tipo:").pack(side="left", padx=(0, 5))
         self.filter_side_var = tk.StringVar(value="Todos")
-        self.filter_side_cb = ttk.Combobox(filters_frame, textvariable=self.filter_side_var, values=["Todos", "Compra", "Venda"], width=8, state="readonly")
-        self.filter_side_cb.pack(side="left", padx=(0, 10))
+        f_side_border = tk.Frame(filters_frame, bg=BG_PANEL, highlightthickness=1, highlightbackground=OUTLINE_SOFT, highlightcolor=OUTLINE_SOFT)
+        f_side_border.pack(side="left", padx=(0, 10))
+        self.filter_side_cb = ttk.Combobox(f_side_border, textvariable=self.filter_side_var, values=["Todos", "Compra", "Venda"], width=8, state="readonly")
+        self.filter_side_cb.pack(side="left")
         self.filter_side_cb.bind("<<ComboboxSelected>>", lambda e: self._refresh_day_panel())
 
         ttk.Label(filters_frame, text="Conta:").pack(side="left", padx=(0, 5))
         self.filter_account_var = tk.StringVar(value="Todas")
-        self.filter_account_cb = ttk.Combobox(filters_frame, textvariable=self.filter_account_var, width=12, state="readonly")
+        f_acc_border = tk.Frame(filters_frame, bg=BG_PANEL, highlightthickness=1, highlightbackground=OUTLINE_SOFT, highlightcolor=OUTLINE_SOFT)
+        f_acc_border.pack(side="left")
+        self.filter_account_cb = ttk.Combobox(f_acc_border, textvariable=self.filter_account_var, width=12, state="readonly")
         self.filter_account_cb.pack(side="left")
         self.filter_account_cb.bind("<<ComboboxSelected>>", lambda e: self._refresh_day_panel())
 
@@ -204,37 +280,54 @@ class TradeJournalApp(tk.Tk):
         tree_scroll.grid(row=3, column=1, sticky="ns")
 
         # Formulário de Adição
-        form = ttk.LabelFrame(side_frame, text="Nova Operação", padding=10)
-        form.grid(row=4, column=0, columnspan=2, sticky="ew", pady=(12, 0))
+        form_border = tk.Frame(side_frame, bg=BG_PANEL, highlightthickness=0, highlightbackground=SELECT_BORDER, highlightcolor=SELECT_BORDER)
+        form_border.grid(row=4, column=0, columnspan=2, sticky="ew", pady=(12, 0))
+        form_border.columnconfigure(0, weight=1)
+
+        form = ttk.LabelFrame(form_border, text="Nova Operação", padding=10)
+        form.grid(row=0, column=0, sticky="ew")
         form.columnconfigure(1, weight=1)
         form.columnconfigure(3, weight=1)
 
         # Linha 1: Conta e Tipo
         ttk.Label(form, text="Conta").grid(row=0, column=0, sticky="w", padx=(0,5))
         self.account_var = tk.StringVar()
-        self.account_cb = ttk.Combobox(form, textvariable=self.account_var, state="readonly")
-        self.account_cb.grid(row=0, column=1, sticky="ew", padx=(0,10))
+        acc_border = tk.Frame(form, bg=BG_PANEL, highlightthickness=1, highlightbackground=OUTLINE_SOFT, highlightcolor=OUTLINE_SOFT)
+        acc_border.grid(row=0, column=1, sticky="ew", padx=(0,10))
+        acc_border.columnconfigure(0, weight=1)
+        self.account_cb = ttk.Combobox(acc_border, textvariable=self.account_var, state="readonly")
+        self.account_cb.grid(row=0, column=0, sticky="ew")
         
         # Botão para gerenciar contas
         ttk.Button(form, text="+", width=2, command=self._manage_accounts).grid(row=0, column=2, padx=(0, 10))
 
         ttk.Label(form, text="Tipo").grid(row=0, column=3, sticky="w", padx=(0,5))
         self.side_var = tk.StringVar(value="Compra")
-        ttk.OptionMenu(form, self.side_var, "Compra", "Compra", "Venda").grid(row=0, column=4, sticky="ew")
+        side_border = tk.Frame(form, bg=BG_PANEL, highlightthickness=1, highlightbackground=OUTLINE_SOFT, highlightcolor=OUTLINE_SOFT)
+        side_border.grid(row=0, column=4, sticky="ew")
+        ttk.OptionMenu(side_border, self.side_var, "Compra", "Compra", "Venda").grid(row=0, column=0, sticky="ew")
 
         # Linha 2: Ativo e Valor
         ttk.Label(form, text="Ativo").grid(row=1, column=0, sticky="w", pady=(10,0))
         self.asset_var = tk.StringVar()
-        ttk.Entry(form, textvariable=self.asset_var).grid(row=1, column=1, columnspan=2, sticky="ew", pady=(10,0), padx=(0,10))
+        asset_border = tk.Frame(form, bg=BG_PANEL, highlightthickness=1, highlightbackground=OUTLINE_SOFT, highlightcolor=OUTLINE_SOFT)
+        asset_border.grid(row=1, column=1, columnspan=2, sticky="ew", pady=(10,0), padx=(0,10))
+        asset_border.columnconfigure(0, weight=1)
+        ttk.Entry(asset_border, textvariable=self.asset_var).grid(row=0, column=0, sticky="ew")
 
         ttk.Label(form, text="L/P").grid(row=1, column=3, sticky="w", pady=(10,0))
         self.pl_var = tk.StringVar()
-        ttk.Entry(form, textvariable=self.pl_var).grid(row=1, column=4, sticky="ew", pady=(10,0))
+        pl_border = tk.Frame(form, bg=BG_PANEL, highlightthickness=1, highlightbackground=OUTLINE_SOFT, highlightcolor=OUTLINE_SOFT)
+        pl_border.grid(row=1, column=4, sticky="ew", pady=(10,0))
+        ttk.Entry(pl_border, textvariable=self.pl_var).grid(row=0, column=0, sticky="ew")
 
         # Linha 3: Obs
         ttk.Label(form, text="Obs").grid(row=2, column=0, sticky="w", pady=(10,0))
         self.obs_var = tk.StringVar()
-        ttk.Entry(form, textvariable=self.obs_var).grid(row=2, column=1, columnspan=4, sticky="ew", pady=(10,0))
+        obs_border = tk.Frame(form, bg=BG_PANEL, highlightthickness=1, highlightbackground=OUTLINE_SOFT, highlightcolor=OUTLINE_SOFT)
+        obs_border.grid(row=2, column=1, columnspan=4, sticky="ew", pady=(10,0))
+        obs_border.columnconfigure(0, weight=1)
+        ttk.Entry(obs_border, textvariable=self.obs_var).grid(row=0, column=0, sticky="ew")
 
         # Botões
         actions = ttk.Frame(form)
@@ -266,6 +359,61 @@ class TradeJournalApp(tk.Tk):
             "Dezembro",
         ][self.current_month]
         return f"{month_name} {self.current_year}"
+
+    def _format_currency_short(self, value: float) -> str:
+        sign = "-" if value < 0 else ""
+        v = abs(value)
+        if v >= 1000:
+            return f"{sign}${v/1000:.1f}k".replace(".0k", "k")
+        if v >= 100:
+            return f"{sign}${v:,.0f}".replace(",", "")
+        return f"{sign}${v:,.0f}".replace(",", "")
+
+    def _month_total(self) -> float:
+        trades_dict = self.data.get("trades", {})
+        if not isinstance(trades_dict, dict):
+            return 0.0
+        total = 0.0
+        for key, items in trades_dict.items():
+            try:
+                y, m, d = map(int, key.split("-"))
+            except Exception:
+                continue
+            if y == self.current_year and m == self.current_month:
+                for t in items:
+                    try:
+                        total += float(t.get("pl", 0.0))
+                    except Exception:
+                        pass
+        return total
+
+    def _day_trade_count(self, d: date) -> int:
+        trades_dict = self.data.get("trades", {})
+        if not isinstance(trades_dict, dict):
+            return 0
+        items = trades_dict.get(_date_key(d), [])
+        return len(items)
+
+    def _week_summary_for_date(self, d: date) -> Dict[str, float]:
+        from datetime import timedelta
+        start = d - timedelta(days=(d.weekday() + 1) % 7)
+        end = start + timedelta(days=6)
+        trades_dict = self.data.get("trades", {})
+        if not isinstance(trades_dict, dict):
+            return {"total": 0.0, "count": 0}
+        total = 0.0
+        count = 0
+        cur = start
+        while cur <= end:
+            if cur.month == self.current_month and cur.year == self.current_year:
+                for t in trades_dict.get(_date_key(cur), []):
+                    try:
+                        total += float(t.get("pl", 0.0))
+                    except Exception:
+                        pass
+                    count += 1
+            cur += timedelta(days=1)
+        return {"total": total, "count": count}
 
     def _prev_month(self) -> None:
         if self.current_month == 1:
@@ -300,8 +448,15 @@ class TradeJournalApp(tk.Tk):
 
     def _render_calendar(self) -> None:
         self.month_label.configure(text=self._month_title())
+        month_total = self._month_total()
+        self.month_profit_label.configure(
+            text=f"{'+' if month_total>0 else ''}{self._format_currency_short(month_total)} Lucro",
+        )
+        self.month_profit_label.configure(
+            foreground=(GREEN if month_total > 0 else RED if month_total < 0 else TEXT_PRIMARY)
+        )
 
-        cal = calendar.Calendar(firstweekday=0)
+        cal = calendar.Calendar(firstweekday=6)
         month_days = list(cal.itermonthdates(self.current_year, self.current_month))
 
         def pad_to_6_weeks(days: List[date]) -> List[date]:
@@ -313,43 +468,43 @@ class TradeJournalApp(tk.Tk):
 
         month_days = pad_to_6_weeks(month_days)
 
+        sat_index = 0
         for idx, d in enumerate(month_days):
             btn = self.day_buttons[idx]
 
             in_month = d.month == self.current_month
             total = self._day_total(d)
+            trade_count = self._day_trade_count(d)
 
             total_text = ""
             if abs(total) > 1e-9:
-                total_text = f"\n{total:+.2f}"
+                total_text = f"\n{self._format_currency_short(total)}"
+            count_text = ""
+            if trade_count > 0:
+                count_text = f"\n{trade_count} operações"
 
-            btn.configure(
-                text=f"{d.day}{total_text}",
-                state=("normal" if in_month else "disabled"),
-                command=lambda dd=d: self._select_date(dd),
-            )
+            label_text = f"{d.day}{total_text}{count_text}"
+            if in_month and d.weekday() == 5:
+                sat_index += 1
+                ws = self._week_summary_for_date(d)
+                label_text = f"Semana {sat_index}\n{self._format_currency_short(ws['total'])}\n{int(ws['count'])} operações"
 
-            # Estilização Padrão (Tkinter)
+            btn.configure(text=label_text, state=("normal" if in_month else "disabled"), command=lambda dd=d: self._select_date(dd))
+
             if not in_month:
-                btn.configure(state="disabled", bg="#f0f0f0") # Cinza claro para dias fora do mês
+                btn.configure(state="disabled", bg=BG_CELL_OUT, fg=TEXT_MUTED)
             else:
                 if total > 0:
-                    btn.configure(bg="#90ee90") # Light Green
+                    btn.configure(bg=GREEN, fg=TEXT_ON_COLOR)
                 elif total < 0:
-                    btn.configure(bg="#ffcccb") # Light Red
+                    btn.configure(bg=RED, fg=TEXT_ON_COLOR)
                 else:
-                    btn.configure(bg="SystemButtonFace") # Cor padrão do sistema
+                    btn.configure(bg=BG_CELL_NEUTRAL, fg=TEXT_PRIMARY)
 
             if d == self.selected_date and in_month:
-                 # Destacar dia selecionado (borda ou cor diferente)
-                 # Como tk.Button tem limitações de borda no Windows, vamos mudar o fundo levemente
-                 current_bg = btn.cget("bg")
-                 if current_bg == "SystemButtonFace":
-                     btn.configure(bg="#e0e0e0") # Cinza um pouco mais escuro
-                 # Se já tem cor (verde/vermelho), mantemos a cor mas talvez alteremos o relevo
-                 btn.configure(relief="sunken")
+                 btn.configure(relief="flat", highlightthickness=0, highlightbackground=SELECT_BORDER, highlightcolor=SELECT_BORDER)
             else:
-                 btn.configure(relief="flat")
+                 btn.configure(relief="flat", highlightthickness=0, highlightbackground=BORDER_SOFT, highlightcolor=BORDER_SOFT)
             
         self._refresh_day_panel()
 

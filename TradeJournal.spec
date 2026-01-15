@@ -9,8 +9,8 @@ hiddenimports = []
 
 
 a = Analysis(
-    ['e:\\Projetos\\test_005\\trade_journal.py'],
-    pathex=[],
+    ['e:\\Projetos\\project_001\\tradejournal\\trade_journal.py'],
+    pathex=['e:\\Projetos\\project_001\\tradejournal'],
     binaries=binaries,
     datas=datas,
     hiddenimports=hiddenimports,
