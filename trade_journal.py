@@ -24,13 +24,16 @@ TEXT_PRIMARY = "#cfe3f0"    # texto principal
 TEXT_MUTED = "#8aa0af"      # texto secundário
 TEXT_ON_COLOR = "#ffffff"   # texto sobre cores fortes
 BG_INPUT = "#152535"
-BORDER_SOFT = "#1e2c36"
-SELECT_BORDER = "#27a6e5"
+BORDER_SOFT = "#102131"
+SELECT_BORDER = "#102131"
 OUTLINE_SOFT = "#11232c"
-FONT_MONTH = ("Segoe UI", 16, "bold")
-FONT_DAY = ("Segoe UI", 10, "bold")
-FONT_CELL = ("Segoe UI", 10, "bold")
-FONT_PROFIT = ("Segoe UI", 14, "bold")
+CONTROL_BG = "#1f2630"
+CONTROL_BG_HOVER = "#2a3440"
+CONTROL_BG_FOCUS = "#223240"
+FONT_MONTH = ("Segoe UI", 16, "normal")
+FONT_DAY = ("Segoe UI", 10, "normal")
+FONT_CELL = ("Segoe UI", 10, "normal")
+FONT_PROFIT = ("Segoe UI", 14, "normal")
 
 def _parse_pl(raw: str) -> float:
     value = raw.strip().replace(",", ".")
@@ -135,21 +138,45 @@ class TradeJournalApp(tk.Tk):
         style.configure("Side.TLabel", background=BG_PANEL, foreground=TEXT_PRIMARY)
         style.configure("TLabelframe", background=BG_PANEL, foreground=TEXT_PRIMARY, borderwidth=0)
         style.configure("TLabelframe.Label", background=BG_PANEL, foreground=TEXT_PRIMARY, font=("Segoe UI", 10))
-        style.configure("Treeview", background=BG_PANEL, fieldbackground=BG_PANEL, foreground=TEXT_PRIMARY, borderwidth=0)
-        style.configure("Treeview.Heading", background=BG_PANEL, foreground=TEXT_PRIMARY)
+        style.configure("Treeview", background=BG_PANEL, fieldbackground=BG_PANEL, foreground=TEXT_PRIMARY, borderwidth=0, relief="flat")
+        style.layout("Treeview", [
+            ("Treeview.treearea", {"sticky": "nswe"})
+        ])
+        style.configure("Treeview.Heading", background=CONTROL_BG, foreground=TEXT_PRIMARY, borderwidth=0, relief="flat")
+        style.layout("Treeview.Heading", [
+            ("Treeheading.cell", {"sticky": "nswe", "children": [
+                ("Treeheading.padding", {"sticky": "nswe", "children": [
+                    ("Treeheading.text", {"sticky": "nswe"})
+                ]})
+            ]})
+        ])
         style.map("Treeview", background=[("selected", "#224058")], foreground=[("selected", TEXT_PRIMARY)])
-        style.configure("TButton", background="#1f3545", foreground=TEXT_PRIMARY, borderwidth=0)
-        style.map("TButton", background=[("active", "#294a60"), ("pressed", "#223e52")])
-        style.configure("TMenubutton", background="#1f3545", foreground=TEXT_PRIMARY, borderwidth=0)
-        style.map("TMenubutton", background=[("active", "#294a60"), ("pressed", "#223e52")])
-        style.configure("TCombobox", fieldbackground=BG_INPUT, background=BG_INPUT, foreground=TEXT_PRIMARY, borderwidth=0, bordercolor=BORDER_SOFT)
+        style.configure("Vertical.TScrollbar", background=CONTROL_BG, troughcolor=BG_PANEL, borderwidth=0, relief="flat")
+        style.configure("TButton", background=CONTROL_BG, foreground=TEXT_PRIMARY, borderwidth=0, relief="flat", padding=(10, 6))
+        style.map("TButton", background=[("active", CONTROL_BG_HOVER), ("pressed", "#1a2230")])
+        style.configure("TMenubutton", background=CONTROL_BG, foreground=TEXT_PRIMARY, borderwidth=0, relief="flat", padding=(10, 6))
+        style.map("TMenubutton", background=[("active", CONTROL_BG_HOVER), ("pressed", "#1a2230")])
+        style.configure("TCombobox", fieldbackground=CONTROL_BG, background=CONTROL_BG, foreground=TEXT_PRIMARY, borderwidth=0, relief="flat", bordercolor=BORDER_SOFT)
+        style.configure("Flat.TCombobox", fieldbackground=CONTROL_BG, background=CONTROL_BG, foreground=TEXT_PRIMARY, borderwidth=0, relief="flat", bordercolor=BORDER_SOFT)
+        style.layout("Flat.TCombobox", [
+            ("Combobox.padding", {"sticky": "nswe", "children": [
+                ("Combobox.textarea", {"sticky": "nswe"}),
+                ("Combobox.downarrow", {"side": "right", "sticky": "ns"})
+            ]})
+        ])
         style.map("TCombobox",
-                  fieldbackground=[("readonly", BG_INPUT)],
-                  background=[("readonly", BG_INPUT)],
+                  fieldbackground=[("readonly", CONTROL_BG)],
+                  background=[("readonly", CONTROL_BG)],
                   foreground=[("readonly", TEXT_PRIMARY)],
-                  arrowcolor=[("readonly", TEXT_PRIMARY)],
+                  arrowcolor=[("readonly", "#000000")],
                   bordercolor=[("readonly", BORDER_SOFT)])
-        style.configure("TEntry", fieldbackground=BG_INPUT, foreground=TEXT_PRIMARY, background=BG_INPUT, borderwidth=0)
+        style.map("Flat.TCombobox",
+                  fieldbackground=[("readonly", CONTROL_BG)],
+                  background=[("readonly", CONTROL_BG)],
+                  foreground=[("readonly", TEXT_PRIMARY)],
+                  arrowcolor=[("readonly", "#000000")],
+                  bordercolor=[("readonly", BORDER_SOFT)])
+        style.configure("TEntry", fieldbackground=CONTROL_BG, foreground=TEXT_PRIMARY, background=CONTROL_BG, borderwidth=0, relief="flat", padding=(6, 4))
 
         self.columnconfigure(0, weight=1)
         self.columnconfigure(1, weight=1)
@@ -176,7 +203,7 @@ class TradeJournalApp(tk.Tk):
         weekdays.grid(row=1, column=0, sticky="ew", pady=(10, 4))
         for i, name in enumerate(["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"]):
             weekdays.columnconfigure(i, weight=1, uniform="wd")
-            ttk.Label(weekdays, text=name, anchor="center", font=("Segoe UI", 9, "bold")).grid(row=0, column=i, sticky="ew")
+            ttk.Label(weekdays, text=name, anchor="center", font=("Segoe UI", 9, "normal")).grid(row=0, column=i, sticky="ew")
 
         self.days_grid = ttk.Frame(calendar_frame, style="Grid.TFrame")
         self.days_grid.grid(row=2, column=0, sticky="nsew")
@@ -236,26 +263,38 @@ class TradeJournalApp(tk.Tk):
         
         ttk.Label(filters_frame, text="Ativo:").pack(side="left", padx=(0, 5))
         self.filter_asset_var = tk.StringVar(value="Todos")
-        f_asset_border = tk.Frame(filters_frame, bg=BG_PANEL, highlightthickness=1, highlightbackground=OUTLINE_SOFT, highlightcolor=OUTLINE_SOFT)
+        f_asset_border = tk.Frame(filters_frame, bg=BG_PANEL, highlightthickness=0, highlightbackground=OUTLINE_SOFT, highlightcolor=OUTLINE_SOFT)
         f_asset_border.pack(side="left", padx=(0, 10))
-        self.filter_asset_cb = ttk.Combobox(f_asset_border, textvariable=self.filter_asset_var, width=10, state="readonly")
+        self.filter_asset_cb = ttk.Combobox(f_asset_border, textvariable=self.filter_asset_var, width=10, state="readonly", style="Flat.TCombobox")
         self.filter_asset_cb.pack(side="left")
+        self.filter_asset_cb.bind("<Enter>", lambda e: f_asset_border.configure(bg=CONTROL_BG_HOVER))
+        self.filter_asset_cb.bind("<Leave>", lambda e: f_asset_border.configure(bg=BG_PANEL))
+        self.filter_asset_cb.bind("<FocusIn>", lambda e: f_asset_border.configure(bg=CONTROL_BG_FOCUS))
+        self.filter_asset_cb.bind("<FocusOut>", lambda e: f_asset_border.configure(bg=BG_PANEL))
         self.filter_asset_cb.bind("<<ComboboxSelected>>", lambda e: self._refresh_day_panel())
 
         ttk.Label(filters_frame, text="Tipo:").pack(side="left", padx=(0, 5))
         self.filter_side_var = tk.StringVar(value="Todos")
-        f_side_border = tk.Frame(filters_frame, bg=BG_PANEL, highlightthickness=1, highlightbackground=OUTLINE_SOFT, highlightcolor=OUTLINE_SOFT)
+        f_side_border = tk.Frame(filters_frame, bg=BG_PANEL, highlightthickness=0, highlightbackground=OUTLINE_SOFT, highlightcolor=OUTLINE_SOFT)
         f_side_border.pack(side="left", padx=(0, 10))
-        self.filter_side_cb = ttk.Combobox(f_side_border, textvariable=self.filter_side_var, values=["Todos", "Compra", "Venda"], width=8, state="readonly")
+        self.filter_side_cb = ttk.Combobox(f_side_border, textvariable=self.filter_side_var, values=["Todos", "Compra", "Venda"], width=8, state="readonly", style="Flat.TCombobox")
         self.filter_side_cb.pack(side="left")
+        self.filter_side_cb.bind("<Enter>", lambda e: f_side_border.configure(bg=CONTROL_BG_HOVER))
+        self.filter_side_cb.bind("<Leave>", lambda e: f_side_border.configure(bg=BG_PANEL))
+        self.filter_side_cb.bind("<FocusIn>", lambda e: f_side_border.configure(bg=CONTROL_BG_FOCUS))
+        self.filter_side_cb.bind("<FocusOut>", lambda e: f_side_border.configure(bg=BG_PANEL))
         self.filter_side_cb.bind("<<ComboboxSelected>>", lambda e: self._refresh_day_panel())
 
         ttk.Label(filters_frame, text="Conta:").pack(side="left", padx=(0, 5))
         self.filter_account_var = tk.StringVar(value="Todas")
-        f_acc_border = tk.Frame(filters_frame, bg=BG_PANEL, highlightthickness=1, highlightbackground=OUTLINE_SOFT, highlightcolor=OUTLINE_SOFT)
+        f_acc_border = tk.Frame(filters_frame, bg=BG_PANEL, highlightthickness=0, highlightbackground=OUTLINE_SOFT, highlightcolor=OUTLINE_SOFT)
         f_acc_border.pack(side="left")
-        self.filter_account_cb = ttk.Combobox(f_acc_border, textvariable=self.filter_account_var, width=12, state="readonly")
+        self.filter_account_cb = ttk.Combobox(f_acc_border, textvariable=self.filter_account_var, width=12, state="readonly", style="Flat.TCombobox")
         self.filter_account_cb.pack(side="left")
+        self.filter_account_cb.bind("<Enter>", lambda e: f_acc_border.configure(bg=CONTROL_BG_HOVER))
+        self.filter_account_cb.bind("<Leave>", lambda e: f_acc_border.configure(bg=BG_PANEL))
+        self.filter_account_cb.bind("<FocusIn>", lambda e: f_acc_border.configure(bg=CONTROL_BG_FOCUS))
+        self.filter_account_cb.bind("<FocusOut>", lambda e: f_acc_border.configure(bg=BG_PANEL))
         self.filter_account_cb.bind("<<ComboboxSelected>>", lambda e: self._refresh_day_panel())
 
 
@@ -292,42 +331,68 @@ class TradeJournalApp(tk.Tk):
         # Linha 1: Conta e Tipo
         ttk.Label(form, text="Conta").grid(row=0, column=0, sticky="w", padx=(0,5))
         self.account_var = tk.StringVar()
-        acc_border = tk.Frame(form, bg=BG_PANEL, highlightthickness=1, highlightbackground=OUTLINE_SOFT, highlightcolor=OUTLINE_SOFT)
+        acc_border = tk.Frame(form, bg=BG_PANEL, highlightthickness=0, highlightbackground=OUTLINE_SOFT, highlightcolor=OUTLINE_SOFT)
         acc_border.grid(row=0, column=1, sticky="ew", padx=(0,10))
         acc_border.columnconfigure(0, weight=1)
-        self.account_cb = ttk.Combobox(acc_border, textvariable=self.account_var, state="readonly")
+        self.account_cb = ttk.Combobox(acc_border, textvariable=self.account_var, state="readonly", style="Flat.TCombobox")
         self.account_cb.grid(row=0, column=0, sticky="ew")
+        self.account_cb.bind("<Enter>", lambda e: acc_border.configure(bg=CONTROL_BG_HOVER))
+        self.account_cb.bind("<Leave>", lambda e: acc_border.configure(bg=BG_PANEL))
+        self.account_cb.bind("<FocusIn>", lambda e: acc_border.configure(bg=CONTROL_BG_FOCUS))
+        self.account_cb.bind("<FocusOut>", lambda e: acc_border.configure(bg=BG_PANEL))
         
         # Botão para gerenciar contas
         ttk.Button(form, text="+", width=2, command=self._manage_accounts).grid(row=0, column=2, padx=(0, 10))
 
         ttk.Label(form, text="Tipo").grid(row=0, column=3, sticky="w", padx=(0,5))
         self.side_var = tk.StringVar(value="Compra")
-        side_border = tk.Frame(form, bg=BG_PANEL, highlightthickness=1, highlightbackground=OUTLINE_SOFT, highlightcolor=OUTLINE_SOFT)
+        side_border = tk.Frame(form, bg=BG_PANEL, highlightthickness=0, highlightbackground=OUTLINE_SOFT, highlightcolor=OUTLINE_SOFT)
         side_border.grid(row=0, column=4, sticky="ew")
-        ttk.OptionMenu(side_border, self.side_var, "Compra", "Compra", "Venda").grid(row=0, column=0, sticky="ew")
+        opt = tk.OptionMenu(side_border, self.side_var, "Compra", "Compra", "Venda")
+        opt.grid(row=0, column=0, sticky="ew")
+        opt.configure(bg=CONTROL_BG, fg=TEXT_PRIMARY, activebackground=CONTROL_BG_HOVER, activeforeground=TEXT_PRIMARY, relief="flat", bd=0, highlightthickness=0)
+        opt["menu"].configure(bg=CONTROL_BG, fg=TEXT_PRIMARY, activebackground=CONTROL_BG_HOVER, activeforeground=TEXT_PRIMARY)
+        opt.bind("<Enter>", lambda e: side_border.configure(bg=CONTROL_BG_HOVER))
+        opt.bind("<Leave>", lambda e: side_border.configure(bg=BG_PANEL))
+        opt.bind("<FocusIn>", lambda e: side_border.configure(bg=CONTROL_BG_FOCUS))
+        opt.bind("<FocusOut>", lambda e: side_border.configure(bg=BG_PANEL))
 
         # Linha 2: Ativo e Valor
         ttk.Label(form, text="Ativo").grid(row=1, column=0, sticky="w", pady=(10,0))
         self.asset_var = tk.StringVar()
-        asset_border = tk.Frame(form, bg=BG_PANEL, highlightthickness=1, highlightbackground=OUTLINE_SOFT, highlightcolor=OUTLINE_SOFT)
+        asset_border = tk.Frame(form, bg=BG_PANEL, highlightthickness=0, highlightbackground=OUTLINE_SOFT, highlightcolor=OUTLINE_SOFT)
         asset_border.grid(row=1, column=1, columnspan=2, sticky="ew", pady=(10,0), padx=(0,10))
         asset_border.columnconfigure(0, weight=1)
-        ttk.Entry(asset_border, textvariable=self.asset_var).grid(row=0, column=0, sticky="ew")
+        asset_entry = tk.Entry(asset_border, textvariable=self.asset_var, bg=CONTROL_BG, fg=TEXT_PRIMARY, insertbackground=TEXT_PRIMARY, relief="flat", bd=0, highlightthickness=0)
+        asset_entry.grid(row=0, column=0, sticky="ew")
+        asset_entry.bind("<Enter>", lambda e: asset_border.configure(bg=CONTROL_BG_HOVER))
+        asset_entry.bind("<Leave>", lambda e: asset_border.configure(bg=BG_PANEL))
+        asset_entry.bind("<FocusIn>", lambda e: asset_border.configure(bg=CONTROL_BG_FOCUS))
+        asset_entry.bind("<FocusOut>", lambda e: asset_border.configure(bg=BG_PANEL))
 
         ttk.Label(form, text="L/P").grid(row=1, column=3, sticky="w", pady=(10,0))
         self.pl_var = tk.StringVar()
-        pl_border = tk.Frame(form, bg=BG_PANEL, highlightthickness=1, highlightbackground=OUTLINE_SOFT, highlightcolor=OUTLINE_SOFT)
+        pl_border = tk.Frame(form, bg=BG_PANEL, highlightthickness=0, highlightbackground=OUTLINE_SOFT, highlightcolor=OUTLINE_SOFT)
         pl_border.grid(row=1, column=4, sticky="ew", pady=(10,0))
-        ttk.Entry(pl_border, textvariable=self.pl_var).grid(row=0, column=0, sticky="ew")
+        pl_entry = tk.Entry(pl_border, textvariable=self.pl_var, bg=CONTROL_BG, fg=TEXT_PRIMARY, insertbackground=TEXT_PRIMARY, relief="flat", bd=0, highlightthickness=0)
+        pl_entry.grid(row=0, column=0, sticky="ew")
+        pl_entry.bind("<Enter>", lambda e: pl_border.configure(bg=CONTROL_BG_HOVER))
+        pl_entry.bind("<Leave>", lambda e: pl_border.configure(bg=BG_PANEL))
+        pl_entry.bind("<FocusIn>", lambda e: pl_border.configure(bg=CONTROL_BG_FOCUS))
+        pl_entry.bind("<FocusOut>", lambda e: pl_border.configure(bg=BG_PANEL))
 
         # Linha 3: Obs
         ttk.Label(form, text="Obs").grid(row=2, column=0, sticky="w", pady=(10,0))
         self.obs_var = tk.StringVar()
-        obs_border = tk.Frame(form, bg=BG_PANEL, highlightthickness=1, highlightbackground=OUTLINE_SOFT, highlightcolor=OUTLINE_SOFT)
+        obs_border = tk.Frame(form, bg=BG_PANEL, highlightthickness=0, highlightbackground=OUTLINE_SOFT, highlightcolor=OUTLINE_SOFT)
         obs_border.grid(row=2, column=1, columnspan=4, sticky="ew", pady=(10,0))
         obs_border.columnconfigure(0, weight=1)
-        ttk.Entry(obs_border, textvariable=self.obs_var).grid(row=0, column=0, sticky="ew")
+        obs_entry = tk.Entry(obs_border, textvariable=self.obs_var, bg=CONTROL_BG, fg=TEXT_PRIMARY, insertbackground=TEXT_PRIMARY, relief="flat", bd=0, highlightthickness=0)
+        obs_entry.grid(row=0, column=0, sticky="ew")
+        obs_entry.bind("<Enter>", lambda e: obs_border.configure(bg=CONTROL_BG_HOVER))
+        obs_entry.bind("<Leave>", lambda e: obs_border.configure(bg=BG_PANEL))
+        obs_entry.bind("<FocusIn>", lambda e: obs_border.configure(bg=CONTROL_BG_FOCUS))
+        obs_entry.bind("<FocusOut>", lambda e: obs_border.configure(bg=BG_PANEL))
 
         # Botões
         actions = ttk.Frame(form)
@@ -662,7 +727,7 @@ class TradeJournalApp(tk.Tk):
         win.title("Gerenciar Contas")
         win.geometry("300x400")
         
-        lbl = ttk.Label(win, text="Contas cadastradas:", font=("Segoe UI", 10, "bold"))
+        lbl = ttk.Label(win, text="Contas cadastradas:", font=("Segoe UI", 10, "normal"))
         lbl.pack(pady=10)
         
         lst_frame = ttk.Frame(win)
